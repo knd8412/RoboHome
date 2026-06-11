@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RoboHome — Mission Control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════ TOP BAR ═══════════════════════ -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="brand-icon">⬡</span>
+      <span class="brand-name">ROBOHOME</span>
+      <span class="brand-sub">MISSION CONTROL</span>
+    </div>
+
+    <div class="topbar-controls">
+      <div class="control-group">
+        <label class="control-label" for="task-select">TASK</label>
+        <select id="task-select" class="select-field">
+          <option value="go_to_bedroom">01 — Go to the bedroom</option>
+          <option value="find_keys">02 — Find the keys</option>
+          <option value="bring_book">03 — Bring book to living room</option>
+          <option value="open_fridge">04 — Open fridge &amp; report</option>
+          <option value="tidy_kitchen">05 — Tidy the kitchen</option>
+          <option value="make_tea">06 — Make a cup of tea</option>
+          <option value="tea_to_bedroom">07 — Make tea &amp; bring to bedroom</option>
+          <option value="keys_to_desk">08 — Put keys on bedroom desk</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <button id="btn-start" class="btn btn-primary" onclick="startRun()">
+          <span class="btn-icon">▶</span> START
+        </button>
+        <button id="btn-pause" class="btn btn-secondary" onclick="togglePause()" disabled>
+          <span class="btn-icon">⏸</span> PAUSE
+        </button>
+        <button id="btn-reset" class="btn btn-ghost" onclick="resetRun()">
+          <span class="btn-icon">↺</span> RESET
+        </button>
+      </div>
+    </div>
+
+    <div class="topbar-status">
+      <div class="status-item">
+        <span class="status-label">STEP</span>
+        <span class="status-value mono" id="stat-step">—</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">ROOM</span>
+        <span class="status-value mono" id="stat-room">—</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">HOLDING</span>
+        <span class="status-value mono" id="stat-holding">nothing</span>
+      </div>
+      <div class="status-badge" id="status-badge">
+        <span class="badge-dot"></span>
+        <span id="badge-text">IDLE</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════ MAIN ═══════════════════════ -->
+  <main class="main-layout">
+
+    <!-- LEFT: World Canvas -->
+    <section class="canvas-panel">
+      <div class="panel-header">
+        <span class="panel-title">WORLD VIEW</span>
+        <span class="panel-meta mono" id="canvas-coords">20 × 15</span>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="world-canvas"></canvas>
+        <div class="canvas-overlay" id="canvas-overlay">
+          <div class="overlay-idle">
+            <div class="overlay-icon">⬡</div>
+            <div class="overlay-text">Select a task and press START</div>
+          </div>
+        </div>
+      </div>
+      <div class="canvas-footer">
+        <div class="legend">
+          <span class="legend-item"><span class="swatch swatch-floor"></span>Floor</span>
+          <span class="legend-item"><span class="swatch swatch-wall"></span>Wall</span>
+          <span class="legend-item"><span class="swatch swatch-door-closed"></span>Door (closed)</span>
+          <span class="legend-item"><span class="swatch swatch-door-open"></span>Door (open)</span>
+          <span class="legend-item"><span class="swatch swatch-robot"></span>Robot</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Step Log -->
+    <section class="log-panel">
+      <div class="panel-header">
+        <span class="panel-title">AGENT LOG</span>
+        <div class="log-controls">
+          <button class="btn-tiny" onclick="clearLog()">CLEAR</button>
+          <button class="btn-tiny" onclick="toggleAutoScroll()" id="btn-autoscroll">AUTO ▼</button>
+        </div>
+      </div>
+
+      <div class="task-bar" id="task-bar" style="display:none">
+        <span class="task-label">OBJECTIVE</span>
+        <span class="task-text" id="task-text">—</span>
+      </div>
+
+      <div class="notes-panel" id="notes-panel" style="display:none">
+        <div class="notes-header">
+          <span class="notes-label">📋 AGENT NOTES</span>
+        </div>
+        <div class="notes-body" id="notes-body">—</div>
+      </div>
+
+      <div class="log-entries" id="log-entries">
+        <div class="log-empty">
+          <span class="mono">Awaiting mission start...</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
