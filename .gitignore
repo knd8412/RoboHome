@@ -1,1 +1,10 @@
 .env
+# Python Virtual Environments and Cache
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Project Specific Ignored Folders
+logs/
+eval_results/
