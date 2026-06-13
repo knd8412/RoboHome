@@ -74,6 +74,8 @@ def handle_start_run(data: dict):
             })
 
         except Exception as exc:
+            import traceback
+            traceback.print_exc()
             socketio.emit("task_complete", {
                 "status": "failed",
                 "message": str(exc),
