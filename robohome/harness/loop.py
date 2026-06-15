@@ -1,5 +1,8 @@
+import json
+import os
 import time
 import threading
+from datetime import datetime
 from typing import Callable, Tuple, List
 
 from robohome.world.world import World
@@ -22,47 +25,68 @@ def run_task(
     max_steps = 30
     history = []
 
-    for step in range(1, max_steps + 1):
-        if stop_event.is_set():
-            return "stopped", history, step
+    # Open a log file for this run
+    os.makedirs("logs", exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_path = f"logs/{timestamp}_{task.name}.jsonl"
+    log_file = open(log_path, "w", encoding="utf-8")
+    print(f"  Logging to {log_path}")
 
-        obs = world.observe()
+    try:
+        for step in range(1, max_steps + 1):
+            if stop_event.is_set():
+                return "stopped", history, step
 
-        action_data = get_llm_action(obs)
+            obs = world.observe()
+            action_data = get_llm_action(obs)
 
-        class ActionObj:
-            pass
+            class ActionObj:
+                pass
 
-        action = ActionObj()
-        action.type = action_data.get("type", "look_around")
-        action.direction = action_data.get("direction", "north")
+            action = ActionObj()
+            action.type = action_data.get("type", "look_around")
+            action.direction = action_data.get("direction", "north")
+            action.object_id = action_data.get("object_id", None)
+            action.target_id = action_data.get("target_id", "floor")
+            action.text = action_data.get("text", "")
 
-        result = world.execute(action)
+            result = world.execute(action)
 
-        step_record = {
-            "step": step,
-            "task": task.objective,
-            "thought": "Awaiting LLM integration...",
-            "robot": {
-                "room": obs["current_room"],
-                "position": {"x": world.robot.position.x, "y": world.robot.position.y},
-                "facing": world.robot.facing,
-                "holding": world.robot.holding,
-            },
-            "last_action": {
-                "action": action.type,
-                "args": action_data,
-                "result": result["status"],
-                "message": result["message"],
-            },
-            "notes": "",
-        }
-        history.append(step_record)
-        on_step(step_record)
+            step_record = {
+                "step": step,
+                "task": task.objective,
+                "thought": "Awaiting LLM integration...",
+                "robot": {
+                    "room": obs["current_room"],
+                    "position": {"x": world.robot.position.x, "y": world.robot.position.y},
+                    "facing": world.robot.facing,
+                    "holding": world.robot.holding,
+                },
+                "last_action": {
+                    "action": action.type,
+                    "args": action_data,
+                    "result": result["status"],
+                    "message": result["message"],
+                },
+                "notes": "",
+            }
 
-        if task.is_successful(world):
-            return "success", history, step
+            history.append(step_record)
 
-        time.sleep(1.0)
+            # Save to log file
+            log_file.write(json.dumps(step_record) + "\n")
+            log_file.flush()
 
-    return "failed", history, max_steps
+            on_step(step_record)
+
+            if task.is_successful(world):
+                # Write outcome into last record for replay
+                step_record["outcome"] = "success"
+                return "success", history, step
+
+            time.sleep(1.0)
+
+        return "failed", history, max_steps
+
+    finally:
+        log_file.close()

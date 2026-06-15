@@ -55,21 +55,23 @@ class World:
         # Find exits from current room
         exits = []
         door_map = {
-            (4, 5): ("bedroom", "hallway"),
-            (14, 5): ("bathroom", "hallway"),
-            (4, 9): ("kitchen", "hallway"),
-            (14, 9): ("living_room", "hallway"),
+            (4, 5):  ("bedroom",     "hallway",     "south", "north"),
+            (14, 5): ("bathroom",    "hallway",     "south", "north"),
+            (4, 9):  ("kitchen",     "hallway",     "north", "south"),
+            (14, 9): ("living_room", "hallway",     "north", "south"),
         }
-        for (dx, dy), (room_a, room_b) in door_map.items():
+        for (dx, dy), (room_a, room_b, dir_from_a, dir_from_b) in door_map.items():
             cell = self.grid.get_cell(dx, dy)
             if cell and cell.cell_type.value == "door":
                 if current_room in (room_a, room_b):
                     other_room = room_b if current_room == room_a else room_a
+                    direction = dir_from_a if current_room == room_a else dir_from_b
                     exits.append({
                         "to_room": other_room,
+                        "direction": direction,
                         "via": f"door_{dx}_{dy}",
                         "is_open": cell.is_open
-                    })
+            })
 
         return {
             "current_room": current_room,

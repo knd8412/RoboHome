@@ -5,6 +5,4 @@ Flask
 Flask-SocketIO
 google-generativeai
 groq
-pydantic>=2.0
-pytest
 python-dotenv
